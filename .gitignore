@@ -1,0 +1,15 @@
+/.venv
+/logs
+/.idea
+__pycache__/
+/data
+/.env-local
+/.env-instance
+*.py[cod]
+
+!instances/bot-example/
+instances/*
+instances/data
+instances/logs
+ytloads
+*.egg-info/
