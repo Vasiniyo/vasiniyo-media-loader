@@ -12,4 +12,5 @@ instances/*
 instances/data
 instances/logs
 ytloads
+.secret.cookies.txt
 *.egg-info/

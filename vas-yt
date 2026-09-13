@@ -141,6 +141,22 @@ print_logo() {
   echo "$(logo)" > "$LOG_FILE"
 }
 
+COOKIES_PATH=".secret.cookies.txt" 
+yt-dlp --cookies-from-browser "brave+gnomekeyring:Default" \
+       --cookies "$COOKIES_PATH" \
+       --no-download \
+       --quiet \
+       --no-warnings \
+       --ignore-errors \
+       'https://www.youtube.com/watch?v=dQw4w9WgXcQ' &>/dev/null
+cookies=$(
+  {
+    head -3 "$COOKIES_PATH"
+    cat "$COOKIES_PATH" | grep 'youtube.com.*__Secure-3PSID'
+  }
+)
+printf '%s\n' "$cookies" > "$COOKIES_PATH"
+
 if [[ "$RUNTIME_MODE" == "local" ]]; then
 
   if ! command -v deno >/dev/null 2>&1; then
@@ -172,7 +188,7 @@ if [[ "$RUNTIME_MODE" == "local" ]]; then
   "$python" -m pip ${QUIET_MODE:+-q} install -r "$SCRIPT_DIR/requirements.txt" >&2
   "$python" -m pip ${QUIET_MODE:+-q} install -e "$SCRIPT_DIR" >&2
 
-  export OUTPUT_PATH QUIET_MODE DEBUG LOG_FILE
+  export OUTPUT_PATH QUIET_MODE DEBUG LOG_FILE COOKIES_PATH
   trap - INT
   print_logo
   "$python" -u -m vasiniyo_media_loader < <(
@@ -207,11 +223,13 @@ docker run -i \
            --user $(id -u):$(id -g) \
            -v "$LOG_FILE":"/logs/logs.log" \
            -v "$(pwd)/ytloads":"/ytloads" \
-           -v "$HOME/.config/BraveSoftware/Brave-Browser":"/.config/BraveSoftware/Brave-Browser" \
            -v "/run/user/$(id -u)/bus":"/run/user/1000/bus" \
+           -v "$COOKIES_PATH":"/cookies.txt" \
            -e DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/1000/bus" \
            -e OUTPUT_PATH="$OUTPUT_PATH" \
            -e QUIET_MODE="$QUIET_MODE" \
            -e DEBUG="$DEBUG" \
            -e LOG_FILE="/logs/logs.log" \
+           -e COOKIES_PATH="/cookies.txt" \
            "$CONTAINER_NAME:latest"
+

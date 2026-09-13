@@ -91,8 +91,9 @@ class Cache:
 class Mp3Service:
     _ydl = None
 
-    def __init__(self, out_dir: str, cache: Cache) -> None:
+    def __init__(self, out_dir: str, cookiefile: str, cache: Cache) -> None:
         self._out_dir = Path(out_dir)
+        self.cookiefile = cookiefile
         self._cache = cache
         self._mp3_opts = {
             "outtmpl": f"{out_dir}/%(title)s.%(ext)s",
@@ -114,9 +115,7 @@ class Mp3Service:
         if self._ydl:
             return self._ydl
         logger.info("getting_cookie")
-        self._ydl = YoutubeDL(
-            self._mp3_opts | {"cookiesfrombrowser": ("brave", None, "GNOMEKEYRING")}
-        )
+        self._ydl = YoutubeDL(self._mp3_opts | {"cookiefile": self.cookiefile})
         return self._ydl
 
     def download(self, url: str) -> None:
@@ -177,6 +176,7 @@ def main() -> int:
     output = os.environ.get("OUTPUT_PATH", "ytloads/common")
     debug_mode = os.environ.get("DEBUG", False)
     quiet_mode = os.environ.get("QUIET_MODE", False)
+    cookiefile = os.environ.get("COOKIES_PATH")
     log_file = os.environ.get("LOG_FILE")
     logging_level = logging.DEBUG if debug_mode else logging.INFO
     logger.setLevel(logging_level)
@@ -190,7 +190,7 @@ def main() -> int:
         file_logger.setFormatter(log_formatter)
         logger.addHandler(file_logger)
     queue = Queue()
-    mp3_service = Mp3Service(output, Cache("ytloads/.cache-ytd.jsonl"))
+    mp3_service = Mp3Service(output, cookiefile, Cache("ytloads/.cache-ytd.jsonl"))
     exit_status = 0
     try:
         stop_event = threading.Event()

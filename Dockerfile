@@ -15,7 +15,7 @@ RUN apt-get update \
     && rm -rf ffmpeg-*-amd64-static ffmpeg.tar.xz \
     && rm -rf /var/lib/apt/lists/* \
     && curl -fsSL https://deno.land/install.sh | sh \
-    && mkdir -p /logs /download /.config/BraveSoftware/Brave-Browser /.cache \
+    && mkdir -p /logs /download /.cache \
     && chmod 777 /.cache
 
 RUN --mount=type=cache,target=/.cache/pip \
@@ -23,9 +23,8 @@ RUN --mount=type=cache,target=/.cache/pip \
 
 VOLUME "/logs/logs.log"
 VOLUME "/ytloads"
-VOLUME "/.config/BraveSoftware/Brave-Browser"
 VOLUME "/run/user/1000/bus"
-
+VOLUME "/cookies.txt"
 WORKDIR /
 
 CMD ["python3", "-u", "-m", "vasiniyo_media_loader"]
